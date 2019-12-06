@@ -1,0 +1,11 @@
+{
+  "restartable": "rs",
+  "ignore": [".git", "node_modules/**/node_modules"],
+  "verbose": false,
+  "exec": "node backend/index.js",
+  "watch": ["backend/", "frontend/"],
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "ext": "js json html css"
+}
