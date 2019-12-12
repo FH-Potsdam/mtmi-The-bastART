@@ -1,39 +1,50 @@
-const { Board, Led, Servo } = require("johnny-five");
+const five = require("johnny-five");
+const board = new five.Board({port: "COM5"});
 const { app } = require("./lib/server");
-var board = new Board({ repl: false });
-let led = undefined;
-let angle = undefined;
-let servo = undefined;
+let pos=0,prePos=0;
+
+function stepIt(ws){
+  stepper = new five.Stepper({
+    type: five.Stepper.TYPE.FOUR_WIRE,
+    stepsPerRev: 200,
+    pins: {
+      motor1: 4,
+      motor2: 6,
+      motor3: 5,
+      motor4: 7
+    }
+  }); 
+  //CW-Links CCW-Rechts
+  let steps=Math.abs(pos-prePos);
+  if(prePos<pos){
+    stepper.rpm(100).ccw().step(steps,function() {ws.send("done");});
+  } else if(prePos>pos){
+    stepper.rpm(100).cw().step(steps,function() {ws.send("done");});
+  } else if(prePos==pos){
+    console.log("same");
+  }
+  
+}
 
 app.ws("/", (ws, _req) => {
   console.log("something connected");
   ws.on("message", (message) => {
-    console.log("message", message);
     try {
       const json = JSON.parse(message);
       if (json.hasOwnProperty("x") === true) {
         console.log("json", json);
-        angle = json.x;
+        prePos=pos;
+        pos = json.x;
+        stepIt(ws,pos,prePos);
       }
     } catch (error) {
       // could bot parse message as JSON
-    }
-    if (message === "on" && led !== undefined) {
-      led.on();
-    }
-    if (message === "off" && led !== undefined) {
-      led.off();
-    }
-    if (servo !== undefined) {
-      servo.to(angle);
     }
   });
 });
 
 board.on("ready", () => {
   console.log("Board is ready");
-  led = new Led(13);
-  servo = new Servo(10);
 });
 
 /**
