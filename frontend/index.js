@@ -2,7 +2,7 @@ const webSocket = new WebSocket("ws://localhost:3000");
 const r=5;
 let mX=r,Cy=r
 let mXpre=0,hue=0,Lcol=10;
-let arr=[],c=0,c1=0,f=true;
+let arr=[],c=1  ,c1=0;
 let txt=["Fish", "Boat", "House", "Dog", "Cat", "Human", "Head", "Hand", "Camera","Instrument","Bicycle", "Car", "Train"];
 let Ctxt;
 
@@ -22,19 +22,21 @@ function setup() {
   textAlign(RIGHT, TOP);
   text(txt[Ctxt], 995, 5);
 
+  arr[0]=0;
+
   webSocket.onmessage = function(msg) {
-    console.log(msg.data);
-    f=false;
-    if(c1<=arr.length-1){
-      c1+=1;
-    } else {
-      f=true;
-    }
-    const data = JSON.stringify({x: arr[c1]});
+    setTimeout(stepping,500);
+  }
+}
+
+function stepping(){
+  if(c1<arr.length){
+    c1+=1;
+    const data = JSON.stringify({pos: arr[c1], prePos: arr[c1-1]});
     webSocket.send(data);
   }
 }
-//t=(steps/(100*200))*60 zeit für n-steps in sek
+
 function draw() {  
   strokeWeight(2);
   stroke(Lcol);
@@ -55,18 +57,13 @@ function mouseClicked(){
     } else {
       mX=mouseX;
     }
+    arr[c]=mX;
+    c+=1;
     hue+=6;
     Cy+=10;
     Lcol+=2;
-    arr[c]=mX;
-    c+=1;
-    console.log(f);
-    if(f==true){
-      const data = JSON.stringify({x: arr[c1]});
-      webSocket.send(data);
-      c1+=1;
-    }
   } else {
-    saveCanvas(canvas, "sketch_"+txt[Ctxt], "png");
+    stepping();
+    //saveCanvas(canvas, "sketch_"+txt[Ctxt], "png");
   }
 }

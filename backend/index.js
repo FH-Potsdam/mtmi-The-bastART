@@ -20,22 +20,17 @@ function stepIt(ws,p,prP){
 
 app.ws("/", (ws, _req) => {
   console.log("something connected");
-  console.log(prePos);
-  console.log(pos);
-  stepIt(ws,-pos,5);
-  pos=5;
-  prePos=5;
   ws.on("message", (message) => {
     try {
       const json = JSON.parse(message);
-      if (json.hasOwnProperty("x") === true) {
-        console.log("json", json);
-        prePos=pos;
-        pos = json.x;
+      if (json.hasOwnProperty("pos") === true) {
+        //console.log("json", json);
+        pos = json.pos;
+        prePos = json.prePos;
         stepIt(ws,pos,prePos);
       }
     } catch (error) {
-      // could bot parse message as JSON
+      // could not parse message as JSON
     }
   });
 });
@@ -54,9 +49,6 @@ board.on("ready", () => {
   });
 });
 
-/**
- *
- */
 app.listen(3000, () => {
   console.log(" listening on http://localhost:3000");
 });
